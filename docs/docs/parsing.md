@@ -112,3 +112,9 @@ When passing only time information the date will default to today.
     >>> pendulum.parse('12:04:23', exact=True)
     Time(12, 04, 23)
     ```
+
+Time-only strings retain any explicit UTC offset, including when using
+`exact=True`. For example, `pendulum.parse('12:04:23+05:30', exact=True)`
+returns a `Time` with a UTC offset of five hours and thirty minutes. An explicit
+offset takes precedence over the `tz` default, just as it does for datetime
+strings.

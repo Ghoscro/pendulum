@@ -66,9 +66,7 @@ def _parse(
         return pendulum.date(parsed.year, parsed.month, parsed.day)
 
     if isinstance(parsed, datetime.time):
-        return pendulum.time(
-            parsed.hour, parsed.minute, parsed.second, parsed.microsecond
-        )
+        return pendulum.Time.instance(parsed, tz=None)
 
     if isinstance(parsed, _Interval):
         if parsed.duration is not None:

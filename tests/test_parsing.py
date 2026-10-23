@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import datetime
+
+import pytest
+
 import pendulum
 
 from tests.conftest import assert_date
@@ -147,3 +151,46 @@ def test_parse_with_utc_timezone() -> None:
     dt = pendulum.parse("2020-02-05T20:05:37.364951Z")
 
     assert dt.to_iso8601_string() == "2020-02-05T20:05:37.364951Z"
+
+
+@pytest.mark.parametrize(
+    ("suffix", "offset"),
+    [
+        ("+05:30", 19800),
+        ("-03:30", -12600),
+        ("Z", 0),
+        ("+00:00", 0),
+    ],
+)
+@pytest.mark.parametrize("exact", [False, True])
+def test_parse_time_preserves_explicit_offset(suffix, offset, exact):
+    parsed = pendulum.parse(
+        "12:34:56.123456" + suffix,
+        exact=exact,
+        tz="America/New_York",
+        now=datetime.datetime(2024, 6, 15),
+    )
+    assert isinstance(parsed, pendulum.Time if exact else pendulum.DateTime)
+    assert (parsed.hour, parsed.minute, parsed.second, parsed.microsecond) == (
+        12,
+        34,
+        56,
+        123456,
+    )
+    assert parsed.utcoffset() == datetime.timedelta(seconds=offset)
+    if not exact:
+        assert (parsed.year, parsed.month, parsed.day) == (2024, 6, 15)
+
+
+@pytest.mark.parametrize("exact", [False, True])
+def test_parse_time_without_offset_keeps_timezone_default(exact):
+    parsed = pendulum.parse(
+        "12:34:56",
+        exact=exact,
+        tz="America/New_York",
+        now=datetime.datetime(2024, 6, 15),
+    )
+    if exact:
+        assert parsed.tzinfo is None
+    else:
+        assert parsed.utcoffset() == datetime.timedelta(hours=-4)
